@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field, FieldGroup, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
@@ -35,12 +35,7 @@ export function CreateTodo() {
   const [open, setOpen] = useState(false);
   const { setTodos } = useTodo();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
+  const form = useForm({
     resolver: zodResolver(todoSchema),
     defaultValues: { title: "", description: "" },
   });
@@ -54,7 +49,7 @@ export function CreateTodo() {
       completed: false,
     };
     setTodos((prev) => [...prev, newTodo]);
-    reset();
+    form.reset();
     setIsLoading(false);
 
     console.log(newTodo);
@@ -68,43 +63,51 @@ export function CreateTodo() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
-        <form onSubmit={handleSubmit(todoSubmitHandler)}>
-          <DialogHeader className="mb-4">
-            <DialogTitle>Edit Todo</DialogTitle>
-            <DialogDescription>
-              Make changes to your todo here. Click save when you&apos;re done.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogHeader className="mb-4">
+          <DialogTitle>Edit Todo</DialogTitle>
+          <DialogDescription>
+            Make changes to your todo here. Click save when you&apos;re done.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={form.handleSubmit(todoSubmitHandler)}>
           <FieldGroup className="mb-4">
-            <Field>
-              <Label htmlFor="name-1">Title</Label>
-              <Input
-                {...register("title")}
-                id="name-1"
-                name="name"
-                placeholder="Title"
-              />
-              {/*  Display the error message from Zod */}
-              {errors.title && (
-                <p className="text-destructive text-sm mt-1">
-                  {errors.task.message}
-                </p>
+            <Controller
+              name="title"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <Label htmlFor="title-1">Title</Label>
+                  <Input
+                    {...field}
+                    id="title-1"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Title"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-            </Field>
-            <Field>
-              <Label htmlFor="description-1">Description</Label>
-              <Input
-                {...register("description")}
-                id="description-1"
-                name="description"
-                placeholder="Description"
-              />
-              {errors.description && (
-                <p className="text-destructive text-sm mt-1">
-                  {errors.task.message}
-                </p>
+            />
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <Label htmlFor="description-1">Description</Label>
+                  <Input
+                    {...field}
+                    id="description-1"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Title"
+                    name="name"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-            </Field>
+            />
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild>
